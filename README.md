@@ -14,7 +14,7 @@ A modern python-based tool to disconnect devices from your local network using A
 
 1.  **Install:**
     ```bash
-    pip install -r requirements.txt
+    pip3 install -r requirements.txt
     ```
 
 2.  **Run (needs root/sudo):**
