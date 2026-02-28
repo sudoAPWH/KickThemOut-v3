@@ -12,15 +12,19 @@ A modern python-based tool to disconnect devices from your local network using A
 
 ## Quick Start
 
-1.  **Install:**
+1.  **Download Repo:**
+    ```bash
+    git clone 'https://github.com/sudoAPWH/KickThemOut-v3.git' && cd KickThemOut-v3
+    ```
+
+2.  **Install Requirements:**
     ```bash
     pip3 install -r requirements.txt
     ```
 
-2.  **Run (needs root/sudo):**
+3.  **Run (needs root/sudo):**
     ```bash
     sudo python3 kickthemout_v3.py
-    ```
 
 ## Usage
 Select a target from the list and choose a packet rate (default: 600/min). Press `Ctrl+C` to stop and restore connectivity.
