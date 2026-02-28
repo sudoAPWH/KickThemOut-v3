@@ -63,7 +63,7 @@ class NetworkScanner:
     def _get_gateway_ip(self) -> str:
         """Retrieves the default gateway IP."""
         try:
-            # Use route to 8.8.8.8 (Google DNS) to find the internet gateway
+            # Use route to 8.8.8.8 to find the internet gateway
             return conf.route.route("8.8.8.8")[2]
         except Exception:
             # Fallback to default route if 8.8.8.8 fails
