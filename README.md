@@ -45,4 +45,4 @@ Your computer might be forwarding packets instead of dropping them. You must dis
   ```
 
 ## Disclaimer
-For educational use and authorized network administration only. Based on the original concept by Nikolaos Kamarinakis & David Schütz.
+For educational use and authorized network administration only. Based on the original [KickThemOut](https://github.com/k4m4/kickthemout) concept by Nikolaos Kamarinakis & David Schütz.
