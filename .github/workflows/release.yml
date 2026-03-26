@@ -147,13 +147,17 @@ jobs:
       - name: Prepare release files
         run: |
           mkdir release
+          # Linux
           cp artifacts/kickthemout-linux-x86_64/kickthemout release/kickthemout-linux-x86_64
           chmod +x release/kickthemout-linux-x86_64
+          # Packages
           cp artifacts/kickthemout-deb/*.deb release/
           cp artifacts/kickthemout-arch/*.pkg.tar.zst release/
-          cp artifacts/kickthemout-macos-arm64/kickthemout release/kickthemout-macos-arm64
-          cp artifacts/kickthemout-macos-x86_64/kickthemout release/kickthemout-macos-x86_64
-          chmod +x release/kickthemout-macos-*
+          # macOS — tar.gz archives
+          chmod +x artifacts/kickthemout-macos-arm64/kickthemout
+          tar -czf release/kickthemout-macos-arm64.tar.gz -C artifacts/kickthemout-macos-arm64 kickthemout
+          chmod +x artifacts/kickthemout-macos-x86_64/kickthemout
+          tar -czf release/kickthemout-macos-x86_64.tar.gz -C artifacts/kickthemout-macos-x86_64 kickthemout
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
