@@ -1,0 +1,22 @@
+pkgname=kickthemout
+pkgver=3.0.0
+pkgrel=1
+pkgdesc="Easily remove unwanted devices from your local network"
+arch=('x86_64')
+url="https://github.com/sudoAPWH/KickThemOut-v3"
+license=('MIT')
+depends=()
+makedepends=('cargo')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+    cd "KickThemOut-v3-$pkgver"
+    cargo build --release --locked
+}
+
+package() {
+    cd "KickThemOut-v3-$pkgver"
+    install -Dm755 "target/release/kickthemout" "$pkgdir/usr/bin/kickthemout"
+    install -Dm644 "LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

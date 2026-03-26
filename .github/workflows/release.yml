@@ -1,0 +1,160 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: linux-cargo-${{ hashFiles('Cargo.lock') }}
+
+      - name: Install cargo-deb
+        run: cargo install cargo-deb
+
+      - name: Build release binary
+        run: cargo build --release
+
+      - name: Build .deb package
+        run: cargo deb --no-build
+
+      - name: Upload Linux binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: kickthemout-linux-x86_64
+          path: target/release/kickthemout
+
+      - name: Upload .deb package
+        uses: actions/upload-artifact@v4
+        with:
+          name: kickthemout-deb
+          path: target/debian/*.deb
+
+  build-arch:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install dependencies
+        run: pacman -Syu --noconfirm base-devel rust git
+
+      - uses: actions/checkout@v4
+
+      - name: Build release binary
+        run: cargo build --release
+
+      - name: Create Arch package
+        run: |
+          mkdir -p pkg-out pkg-root/usr/bin pkg-root/usr/share/licenses/kickthemout
+          cp target/release/kickthemout pkg-root/usr/bin/
+          cp LICENSE pkg-root/usr/share/licenses/kickthemout/
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "pkgname = kickthemout" > pkg-root/.PKGINFO
+          echo "pkgver = ${VERSION}-1" >> pkg-root/.PKGINFO
+          echo "pkgdesc = Easily remove unwanted devices from your local network" >> pkg-root/.PKGINFO
+          echo "url = https://github.com/sudoAPWH/KickThemOut-v3" >> pkg-root/.PKGINFO
+          echo "arch = x86_64" >> pkg-root/.PKGINFO
+          echo "license = MIT" >> pkg-root/.PKGINFO
+          echo "size = $(du -sb pkg-root/usr | cut -f1)" >> pkg-root/.PKGINFO
+          cd pkg-root
+          tar -cf ../pkg-out/kickthemout-${VERSION}-1-x86_64.pkg.tar.zst --zstd .PKGINFO usr/
+
+      - name: Upload Arch package
+        uses: actions/upload-artifact@v4
+        with:
+          name: kickthemout-arch
+          path: pkg-out/*.pkg.tar.zst
+
+  build-macos-arm64:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: macos-arm64-cargo-${{ hashFiles('Cargo.lock') }}
+
+      - name: Build release binary
+        run: cargo build --release
+
+      - name: Upload macOS arm64 binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: kickthemout-macos-arm64
+          path: target/release/kickthemout
+
+  build-macos-x86:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: macos-x86-cargo-${{ hashFiles('Cargo.lock') }}
+
+      - name: Build release binary
+        run: cargo build --release
+
+      - name: Upload macOS x86_64 binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: kickthemout-macos-x86_64
+          path: target/release/kickthemout
+
+  release:
+    needs: [build-linux, build-arch, build-macos-arm64, build-macos-x86]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release files
+        run: |
+          mkdir release
+          cp artifacts/kickthemout-linux-x86_64/kickthemout release/kickthemout-linux-x86_64
+          chmod +x release/kickthemout-linux-x86_64
+          cp artifacts/kickthemout-deb/*.deb release/
+          cp artifacts/kickthemout-arch/*.pkg.tar.zst release/
+          cp artifacts/kickthemout-macos-arm64/kickthemout release/kickthemout-macos-arm64
+          cp artifacts/kickthemout-macos-x86_64/kickthemout release/kickthemout-macos-x86_64
+          chmod +x release/kickthemout-macos-*
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true
